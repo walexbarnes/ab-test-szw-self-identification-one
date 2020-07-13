@@ -13,6 +13,12 @@ Note that the entirity of the code is available [here](https://github.com/walexb
 The code is broken up into two functions: load dependencies and set content. 
 
 ### Loading Dependencies 
+
+Featherlight requires two scripts to be loaded before you can access the featherlight object: a CSS script and a JavaScript script. If the code that gets these scripts and the code that manipulates the lightbox ran all at the same time, the code that manipulates the lightbox would try to access an object that does not exist and would return an error. Therefore, I have built in a callback into the JS portion of the load script such that any actions that should occur only after the JS has loaded will operate as expected. 
+
+I created a function within this function to load other scripts modularly, as the site where I deploy this may have other CSS files that I might have to inject later. This makes that process easier, should that occur. 
+
+I have built in a `try and catch` to find errors in the function, should there be any. 
 ```
 function loadDependencies(callback) {
     try {
