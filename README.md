@@ -6,3 +6,6 @@ To enhance the client's understanding of who is using the site, we deployed a se
 The most important feature of the tool is its impact on site behavior. The client did not want to negatively impact site metrics; for example, we wanted to be sure that whatever we are showing the users does not make them immediately leave the site when they otherwise would have stayed. 
 
 Therefore, I developed the code with flexibility in mind, knowing there would be multiple iterations and tweaks before a final functionality was determined.  
+
+## Code Review
+Note that the entirity of the code is available [here](https://github.com/walexbarnes/szw-self-identification-one/blob/master/self_id_code.js) without commentary interruptions and demonstrations.
