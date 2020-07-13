@@ -103,8 +103,84 @@ Finally, the intro variable is combined with the concatonated options variable a
         var content = introBones+concatOptions+closeBones;
 
         $.featherlight(content,{closeOnClick:'background',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
-        ```
-        
+```
+
+#### The button functionality
+Again, for the client, flexibility is key: test multiple versions of the tool to determine the variant with the lowest negative impact on behavior. 
+
+Therefore, multiple functionalities for the "Enter the Site" button would need to be tested and combined with other iterations and tool combinations. 
+
+To make the button functionality flexible, I created a function to change the button functionality by merely altering the argument of that function. 
+
+There are three functionalities to test: a base button that is there, but does not close the survey until the user makes a selection, a button that is transparent and not clicable until the user makes a selection, and a button that is hidden and only shows up when a user makes a selection. 
+
+The base functionality is determined within the `buttonFunctionality()` function as its own function. Regardless of the argument passed into the `buttonFunctionality()`, the `baseFunctionality()` will always run. This base functionality sets a browser storage object on click (for data collection - more on that later), and gives the button the power to close the survey if an option is selected. 
+
+A switch statement will run and will evaluate the expression passed into the `buttonFunctionality(arg)` function. The argument passed determines which functionality displays. All three button functionalities utilize the `baseFunctionality()` but have added code where necessary to tweak it for that functionality. 
+```
+        //Pass in arguments "showTransparent", or "hideThenShow", or "nothing" 
+        buttonFunctionality('showTransparent');
+
+
+        function buttonFunctionality(doWhat)
+        {
+            var optionSelector = $('section.featherlight-inner');
+            var button = $('.component-general-content-block__cta.featherlight-inner'); 
+
+            switch(doWhat)
+            {
+                case("hideThenShow"):
+                    button.hide();
+                    optionSelector.find('label').on('click',function(){
+                        button.show();
+                        baseFunctionality($(this));
+                    });
+                    break;
+                case("showTransparent"):
+                    button.find('a').attr('style',"pointer-events:none!important;cursor:default!important;opacity:.5!important");
+                    optionSelector.find('label').on('click',function(){
+                        button.find('a').removeAttr('style');
+                        baseFunctionality($(this));
+                    });
+                    break;
+                case("nothing"):
+                    optionSelector.find('label').on('click',function(){
+                    baseFunctionality($(this));
+                       
+                    });
+                    break;
+            }
+            function baseFunctionality(arg){
+                sessionStorage.setItem('selfIDopen',arg.find('input').attr('value'));
+    
+                if(!button.find('a').hasClass("featherlight-close"))
+                {
+                    button.find('a').addClass("featherlight-close");
+                }
+            }
+        }
+
+
+```
+#### The data collection
+The user's input must be collected and sent to our analytics platform. I accomplish this by setting a browser storage object, set to `noSelection`, before the survey loads up. 
+Once the survey loads, and the user selects an option, the button's `baseFunctionality()` will change the value of the browser storage object to the value passed into the first argument of the `makeNewOption()` function for the selection's option. 
+
+Once the user closes the survey tool, by the X button or the Enter the Site button, 
+
+```
+sessionStorage.setItem('selfIDopen','noSelection');
+
+$.featherlight(content,{closeOnClick:'background',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
+
+   function baseFunctionality(arg){
+                sessionStorage.setItem('selfIDopen',arg.find('input').attr('value'));
+    
+                if(!button.find('a').hasClass("featherlight-close"))
+                {
+                    button.find('a').addClass("featherlight-close");
+                }
+            }
 ```
 function setContent() {
     try {
