@@ -1,5 +1,5 @@
 # szw-self-identification-one
-[Quick video demo] (https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/transparent_button.mp4)
+[Quick video demo](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/transparent_button.mp4)
 
 ## Background
 To enhance the client's understanding of who is using the site, we deployed a self identification tool wherein users select their audience type upon landing. The tool needed to provide a venue for the user to select their audience type, but also send the user's selection into our analytics platform (Adobe Analytics). Using a plugin called [Featherlight](https://github.com/noelboss/featherlight/), and an A/B testing platform called Adobe Target, I developed and deployed this tool. 
@@ -106,7 +106,7 @@ Finally, the intro variable is combined with the concatonated options variable a
         $.featherlight(content,{closeOnClick:'background',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
 ```
 
-See it in action [BaseButton](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/base_button.mp4) [HideThenShowButton] (https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/hide_show_button.mp4) [TransparentButton](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/transparent_button.mp4)
+See it in action [BaseButton](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/base_button.mp4) [HideThenShowButton](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/hide_show_button.mp4) [TransparentButton](https://github.com/walexbarnes/szw-self-identification-one/blob/master/demo/transparent_button.mp4)
 
 #### The button functionality
 Again, for the client, flexibility is key: test multiple versions of the tool to determine the variant with the lowest negative impact on behavior. 
