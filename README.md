@@ -166,7 +166,11 @@ A switch statement will run and will evaluate the expression passed into the `bu
 The user's input must be collected and sent to our analytics platform. I accomplish this by setting a browser storage object, set to `noSelection`, before the survey loads up. 
 Once the survey loads, and the user selects an option, the button's `baseFunctionality()` will change the value of the browser storage object to the value passed into the first argument of the `makeNewOption()` function for the selection's option. 
 
-Once the user closes the survey tool, by the X button or the Enter the Site button, 
+Once the user closes the survey tool, by the X button or the Enter the Site button, a new sessionStorage item will pick up the last value of the old sessionStorage item. 
+
+In the tag manager, I configured it to where when the new sessionStorage item is set, a tag will fire and send the user's selection to our data collection server so we can report on it. 
+
+I used a new sessionStorage item so that it does not fire the tag until the user has closed the survey, not while they click back and forth between options. 
 
 ```
 sessionStorage.setItem('selfIDopen','noSelection');
@@ -182,6 +186,85 @@ $.featherlight(content,{closeOnClick:'background',afterClose:function(event){ses
                 }
             }
 ```
+
+#### Device agnostic 
+To make the survey look presentable on desktop and mobile, I attached a listener function that changes the width of the survey based on screen size.
+```
+  var x = window.matchMedia("(min-width: 750px)");
+        changeBoxWidth(x); // Call listener function at run time
+        x.addListener(changeBoxWidth); // Attach listener function on state changes
+        
+      function changeBoxWidth(x) {
+            if (x.matches) {
+                applyAllStyling('775');
+            }
+            else {
+                applyAllStyling('300');
+            }
+
+            function applyAllStyling(width) {
+                $('.featherlight-content').attr('style', 'width:' + width + 'px;display:inline-block');
+                $('.featherlight-content .create-account-content').attr('style', 'padding:8px;text-align:left!important');
+                $('.featherlight-close').attr('style', 'text-align:center');
+                $('.intro-copy').attr('style', 'text-align:center;padding-bottom:10px;padding-top:10px');
+                $('.featherlight-content .custom-check-radio__check').hide();
+                $('.featherlight:last-of-type').attr('style','display:block;background:rgba(0,0,0,.8)!important');
+
+            }
+        }
+
+```
+
+### Full Code 
+The full code is available below:
+```
+loadDependencies(setContent)
+
+
+function loadDependencies(callback) {
+    try {
+        //FL CSS 
+        loadScript('featherlight-css-adobe-target', '//cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.css', 'css');
+        //FL JS
+        loadScript('featherlight-js-adobe-target', '//cdn.jsdelivr.net/npm/featherlight@1.7.14/release/featherlight.min.js', 'js');
+
+        function loadScript(elId, ref, type) {
+            if (!document.getElementById(elId)) {
+                switch (type) {
+                    case 'css':
+                        var head = document.getElementsByTagName('head')[0];
+                        var link = document.createElement('link');
+                        link.id = elId;
+                        link.rel = 'stylesheet';
+                        link.type = 'text/css';
+                        link.href = ref;
+                        head.appendChild(link);
+                        _satellite.logger.warn('appending css script with id of ' + elId);
+                        break;
+
+                    case 'js':
+                        var body = document.getElementsByTagName('body')[0];
+                        var script = document.createElement('script');
+                        script.id = elId;
+                        script.charset = 'utf-8';
+                        script.type = 'text/javascript';
+                        script.src = ref;
+                        script.onload = () => callback(script);
+                        body.appendChild(script);
+                        _satellite.logger.warn('appending js script with id of ' + elId);
+                        break;
+                }
+
+            }
+        }
+    }
+
+    catch (err) {
+        _satellite.logger.warn(err);
+        _satellite.logger.warn('loadDependencies()');
+    }
+}
+
 function setContent() {
     try {
         //var unusedBoxAtTop = '<div class="modal-header grey-box"><h5 class="modal-title forgot-password-text" id="myModalLabel">SELF ID</h5></div>';
@@ -291,4 +374,7 @@ function setContent() {
     }
 
 }
+
+
+
 ```
