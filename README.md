@@ -1,7 +1,7 @@
 # szw-self-identification-one
 
 ## Background
-To enhance the client's understanding of who is using the site, we deployed a self identification tool wherein users select their audience type upon landing. The tool needed to provide a venue for the user to select their audience type, but also send the user's selection into our analytics platform (Adobe Analytics). Using a plugin called [Featherlight](https://github.com/noelboss/featherlight/), and an A/B testing platform called Adobe Target, we devloped and deployed this tool. 
+To enhance the client's understanding of who is using the site, we deployed a self identification tool wherein users select their audience type upon landing. The tool needed to provide a venue for the user to select their audience type, but also send the user's selection into our analytics platform (Adobe Analytics). Using a plugin called [Featherlight](https://github.com/noelboss/featherlight/), and an A/B testing platform called Adobe Target, I developed and deployed this tool. 
 
 The most important feature of the tool is its impact on site behavior. The client did not want to negatively impact site metrics; for example, we wanted to be sure that whatever we are showing the users does not make them immediately leave the site when they otherwise would have stayed. 
 
@@ -62,5 +62,157 @@ function loadDependencies(callback) {
         _satellite.logger.warn(err);
         _satellite.logger.warn('loadDependencies()');
     }
+}
+```
+
+### Setting Content
+The `setContent()` function is what I pass in as an argument to `loadDependencies()` as a callback to ensure that the featherlight object is available for access before it is manipulated. 
+
+#### The options
+The client wanted to test multiple different iterations of the test wherein we adjust the number and ordering of the options for user type. The featherlight object only allows one JS variable, passed through as a string, to set the content of the lightbox. Therefore, changing the tools options could become a cumbersome and error prone process if done manually, multiple times over. 
+
+Therefore, i created a `makeNewoption()` function to assist me with dynamically adding and changing the order of the options on the fly. It accepts two arguments, the `value` and the `text`. The value is used to capture the user's input and send it to our reporting platform (more on that later) and the text is the actual text that the end user sees and can select. 
+
+Regardless of the number/ordering of options two parts remain the same: the "intro" and the button at the end to close the survey and enter the site. 
+
+To make this work, I stored both the button and the intro as separate JS string variables. I initialized an empty array to hold the options created with my `makeNewOption()` function. Within that function, each new option is appended to the array. 
+
+After all options are created, a for loop traverses the length of the array and concatonates the option values into one JS variable. 
+
+Finally, the intro variable is combined with the concatonated options variable and the button variable to create the contents of the survey.  
+
+```
+        var introBones = '<h4 class="intro-copy">Please help us make the site better by identifying yourself:</h4>';
+        var closeBones = '<div class="component-general-content-block__cta featherlight-inner" style="text-align: center;"><a class="cta cta--brandneutral" target="_self">Enter Site</a></div>';
+        var optionsRecord = [];
+        var concatOptions = '';
+
+        makeNewOption("Owner","I currently own a Sub-Zero and/or Wolf and/or Cove product");
+        makeNewOption("OwnerInMarket","I currently own a Sub-Zero and/or Wolf and/or Cove product and am shopping for another appliance");
+        makeNewOption("Shopper","I do not currently own a Sub-Zero and/or Wolf and/or Cove and am shopping for appliances");
+        makeNewOption('Trade',"I am a trade professional (e.g. architect, designer, dealer, installer, sales professional)");
+        makeNewOption('ChannelPartner',"I am a channel partner (e.g. dealer, distributor, showroom, servicer, installer)");
+        makeNewOption('Employee',"I am looking for employment or I am an employee");
+
+
+        for(var i=0; i < optionsRecord.length; i++)
+        {
+            concatOptions=concatOptions+optionsRecord[i];
+        }
+
+        var content = introBones+concatOptions+closeBones;
+
+        $.featherlight(content,{closeOnClick:'background',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
+        ```
+        
+```
+function setContent() {
+    try {
+        //var unusedBoxAtTop = '<div class="modal-header grey-box"><h5 class="modal-title forgot-password-text" id="myModalLabel">SELF ID</h5></div>';
+        var introBones = '<h4 class="intro-copy">Please help us make the site better by identifying yourself:</h4>';
+        var closeBones = '<div class="component-general-content-block__cta featherlight-inner" style="text-align: center;"><a class="cta cta--brandneutral" target="_self">Enter Site</a></div>';
+        var optionsRecord = [];
+        var concatOptions = '';
+
+        makeNewOption("Owner","I currently own a Sub-Zero and/or Wolf and/or Cove product");
+        makeNewOption("OwnerInMarket","I currently own a Sub-Zero and/or Wolf and/or Cove product and am shopping for another appliance");
+        makeNewOption("Shopper","I do not currently own a Sub-Zero and/or Wolf and/or Cove and am shopping for appliances");
+        makeNewOption('Trade',"I am a trade professional (e.g. architect, designer, dealer, installer, sales professional)");
+        makeNewOption('ChannelPartner',"I am a channel partner (e.g. dealer, distributor, showroom, servicer, installer)");
+        makeNewOption('Employee',"I am looking for employment or I am an employee");
+
+
+        for(var i=0; i < optionsRecord.length; i++)
+        {
+            concatOptions=concatOptions+optionsRecord[i];
+        }
+
+        var content = introBones+concatOptions+closeBones;
+
+        $.featherlight(content,{closeOnClick:'background',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
+        //$.featherlight(content,{closeOnClick:false,closeOnEsc:false,afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
+        //$.featherlight(content,{closeOnClick:false,closeOnEsc:false,closeIcon:'',afterClose:function(event){sessionStorage.setItem('selfIDclosed',sessionStorage.getItem('selfIDopen'))}});
+        
+        sessionStorage.setItem('selfIDopen','noSelection');
+
+        //Pass in arguments "showTransparent", or "hideThenShow", or "nothing" 
+        buttonFunctionality('showTransparent');
+
+        var x = window.matchMedia("(min-width: 750px)");
+        changeBoxWidth(x); // Call listener function at run time
+        x.addListener(changeBoxWidth); // Attach listener function on state changes
+
+        function makeNewOption(value,copy)
+        {
+            var newOption = '<section class="create-account-content role-selection no-bottom-padding"><div class="radio radio--inline"><label class="radio-label"><input class="custom-check-radio" id="Role" name="Role" type="radio" value='+value+'><div class="custom-check-radio__check"></div><span>'+copy+'</span></label></div></section>';
+
+            optionsRecord.push(newOption);
+        }
+
+        function changeBoxWidth(x) {
+            if (x.matches) {
+                applyAllStyling('775');
+            }
+            else {
+                applyAllStyling('300');
+            }
+
+            function applyAllStyling(width) {
+                $('.featherlight-content').attr('style', 'width:' + width + 'px;display:inline-block');
+                $('.featherlight-content .create-account-content').attr('style', 'padding:8px;text-align:left!important');
+                $('.featherlight-close').attr('style', 'text-align:center');
+                $('.intro-copy').attr('style', 'text-align:center;padding-bottom:10px;padding-top:10px');
+                $('.featherlight-content .custom-check-radio__check').hide();
+                $('.featherlight:last-of-type').attr('style','display:block;background:rgba(0,0,0,.8)!important');
+
+            }
+        }
+
+
+        function buttonFunctionality(doWhat)
+        {
+            var optionSelector = $('section.featherlight-inner');
+            var button = $('.component-general-content-block__cta.featherlight-inner'); 
+
+            switch(doWhat)
+            {
+                case("hideThenShow"):
+                    button.hide();
+                    optionSelector.find('label').on('click',function(){
+                        button.show();
+                        baseFunctionality($(this));
+                    });
+                    break;
+                case("showTransparent"):
+                    button.find('a').attr('style',"pointer-events:none!important;cursor:default!important;opacity:.5!important");
+                    optionSelector.find('label').on('click',function(){
+                        button.find('a').removeAttr('style');
+                        baseFunctionality($(this));
+                    });
+                    break;
+                case("nothing"):
+                    optionSelector.find('label').on('click',function(){
+                    baseFunctionality($(this));
+                       
+                    });
+                    break;
+            }
+            function baseFunctionality(arg){
+                sessionStorage.setItem('selfIDopen',arg.find('input').attr('value'));
+    
+                if(!button.find('a').hasClass("featherlight-close"))
+                {
+                    button.find('a').addClass("featherlight-close");
+                }
+            }
+        }
+    }
+
+    catch(err)
+    {
+        _satellite.logger.warn(err);
+        _satellite.logger.warn("setContent()");
+    }
+
 }
 ```
